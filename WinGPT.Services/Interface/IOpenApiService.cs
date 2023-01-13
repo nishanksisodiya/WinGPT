@@ -3,7 +3,7 @@
     public interface IOpenApiService
     {
         Dictionary<string, string> GetConfigurations();
-        Task<List<string>> GetModel(string model);
+        List<string> GetModel();
         Task<string> GetTextCompletion(string message);
     }
 }

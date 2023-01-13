@@ -16,26 +16,29 @@ namespace WinGPT.Services.Services;
 public class OpenApiService : IOpenApiService
 {
     private readonly IConfiguration configuration;
+    private Dictionary<string, string> configs;
 
     public OpenApiService(IConfiguration configuration)
     {
         this.configuration = configuration;
+        configs = this.GetConfigurations();
+
     }
-    public async Task<List<string>> GetModel(string model)
+    public List<string> GetModel()
     {
         var modelsList = new List<string>();
 
         using (var httpClient = new HttpClient())
         {
-            string openAIAPIKey = configuration.GetSection("Values").GetSection("OpenAIAPIKey").Value;
-            string openAIOrgId = configuration.GetSection("Values").GetSection("OpenAIOrgId").Value;
+            string openAIAPIKey = configs["OpenAIAPIKey"];
+            string openAIOrgId = configs["OpenAIOrgId"];
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, "https://api.openai.com/v1/models"))
             {
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", openAIAPIKey);
                 requestMessage.Headers.Add("OpenAI-Organization", openAIOrgId);
 
-                var res = await httpClient.SendAsync(requestMessage);
-                var result = await res.Content.ReadAsStringAsync();
+                var res = httpClient.SendAsync(requestMessage).Result;
+                var result = res.Content.ReadAsStringAsync().Result;
 
                 var models = JsonConvert.DeserializeObject<ListModelsRoot>(result);
                 modelsList = models!.data.Select(m => m.id).ToList();
@@ -52,10 +55,10 @@ public class OpenApiService : IOpenApiService
         {
             using (var httpClient = new HttpClient())
             {
-                string openAIAPIKey = configuration.GetSection("Values").GetSection("OpenAIAPIKey").Value;
-                string openAIOrgId = configuration.GetSection("Values").GetSection("OpenAIOrgId").Value;
-                string model = configuration.GetSection("Values").GetSection("Model").Value;
-                int maxTokens = Convert.ToInt32(configuration.GetSection("Values").GetSection("MaxToken").Value);
+                string openAIAPIKey = configs["OpenAIAPIKey"];
+                string openAIOrgId = configs["OpenAIOrgId"];
+                string model = configs["Model"];
+                int maxTokens = Convert.ToInt32(configs["MaxToken"]);
 
                 using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/completions"))
                 {

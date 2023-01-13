@@ -5,6 +5,7 @@ using System.Windows.Media.Animation;
 using System;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 using MaterialDesignThemes.Wpf;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ using System.Threading;
 using System.IO;
 using WinGPT.Entities.Configurations;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace WinGPT.App;
 
@@ -25,15 +27,25 @@ public partial class MainWindow : Window
     private int messageCounter;
     private readonly IOpenApiService openApiService;
     private enum userType { User, AI };
+    IList<string> modelList;
     private Dictionary<string, string> configs;
 
     public MainWindow(IOpenApiService openApiService)
     {
+        configs = openApiService.GetConfigurations();
+        modelList = openApiService.GetModel().ToArray();
         InitializeComponent();
 
-        configs = openApiService.GetConfigurations();
+        Model.ItemsSource = modelList;
+        Model.SelectedItem = configs.GetValueOrDefault("Model");
+        MaxTokens.Text = configs.GetValueOrDefault("MaxToken");
+        OpenAIAPIKey.Password = configs.GetValueOrDefault("OpenAIAPIKey");
+        OpenAIOrganizationId.Text = configs.GetValueOrDefault("OpenAIOrgId");
 
-        dialog.IsOpen = true;
+        if (configs.Keys.Count < 4 || true)
+        {
+            dialog.IsOpen = true;
+        }
 
         messageCounter = 0;
         this.openApiService = openApiService;
@@ -94,6 +106,11 @@ public partial class MainWindow : Window
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!EnableSave())
+        {
+            return;
+        }
+
         var cfg = new AppConfigurations()
         {
             Model = Model.Text,
@@ -103,5 +120,23 @@ public partial class MainWindow : Window
         };
 
         File.WriteAllText("Configurations.json", JsonConvert.SerializeObject(cfg));
+        dialog.IsOpen = false;
+    }
+
+    private void messageBox_OnEnter(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == Key.Return)
+        {
+            this.SendMessage_Click(sender, new RoutedEventArgs());
+        }
+    }
+
+    private bool EnableSave()
+    {
+        if (!string.IsNullOrEmpty(Model.Text) && !string.IsNullOrEmpty(MaxTokens.Text) && !string.IsNullOrEmpty(OpenAIOrganizationId.Text) && !string.IsNullOrEmpty(OpenAIAPIKey.Password))
+        {
+            return true;
+        }
+        return false;
     }
 }
