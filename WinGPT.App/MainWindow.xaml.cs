@@ -11,6 +11,9 @@ using System.Diagnostics;
 using WinGPT.Services.Interface;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO;
+using WinGPT.Entities.Configurations;
+using Newtonsoft.Json;
 
 namespace WinGPT.App;
 
@@ -22,10 +25,15 @@ public partial class MainWindow : Window
     private int messageCounter;
     private readonly IOpenApiService openApiService;
     private enum userType { User, AI };
+    private Dictionary<string, string> configs;
 
     public MainWindow(IOpenApiService openApiService)
     {
         InitializeComponent();
+
+        configs = openApiService.GetConfigurations();
+
+        dialog.IsOpen = true;
 
         messageCounter = 0;
         this.openApiService = openApiService;
@@ -39,9 +47,9 @@ public partial class MainWindow : Window
             messageBox.IsEnabled = false;
             thinkingBar.Visibility = Visibility.Visible;
 
-            var response = await this.openApiService.GetTextCompletion(messageBox.Text);
+            //var response = await this.openApiService.GetTextCompletion(messageBox.Text);
             
-            //var response = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+            var response = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
             this.AddMessage(userType.AI, response);
 
             thinkingBar.Visibility = Visibility.Hidden;
@@ -82,5 +90,18 @@ public partial class MainWindow : Window
         messageHistory.Children.Add(row);
 
         Grid.SetRow(row, messageHistory.RowDefinitions.Count - 1);
+    }
+
+    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        var cfg = new AppConfigurations()
+        {
+            Model = Model.Text,
+            MaxToken = MaxTokens.Text,
+            OpenAIAPIKey = OpenAIAPIKey.Password,
+            OpenAIOrgId = OpenAIOrganizationId.Text
+        };
+
+        File.WriteAllText("Configurations.json", JsonConvert.SerializeObject(cfg));
     }
 }

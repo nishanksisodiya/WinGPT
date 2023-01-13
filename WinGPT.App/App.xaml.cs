@@ -23,8 +23,7 @@ public partial class App : Application
             {
                 builder
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddEnvironmentVariables()
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    .AddEnvironmentVariables();
             })
             .ConfigureServices((hostContext, services) =>
             {

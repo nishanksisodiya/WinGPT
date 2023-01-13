@@ -88,8 +88,24 @@ public class OpenApiService : IOpenApiService
         {
             Console.WriteLine(ex.ToString());
         }
-        
+
 
         return responseMessage;
+    }
+
+    public Dictionary<string, string> GetConfigurations()
+    {
+        Dictionary<string, string> configurations = new Dictionary<string, string>();
+
+        if (File.Exists("Configurations.json"))
+        {
+            using (StreamReader file = File.OpenText("Configurations.json"))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                configurations = (Dictionary<string, string>)serializer.Deserialize(file, typeof(Dictionary<string, string>))!;
+            }
+        }
+
+        return configurations!;
     }
 }
