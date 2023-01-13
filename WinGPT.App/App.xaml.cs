@@ -1,7 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
+using System.IO;
 using System.Windows;
+using WinGPT.Services.Interface;
+using WinGPT.Services.Services;
 
 namespace WinGPT.App;
 
@@ -12,18 +16,23 @@ public partial class App : Application
 {
     public static IHost? AppHost { get; private set; }
 
-    public App()
-    {
-        AppHost = Host.CreateDefaultBuilder()
-            .ConfigureServices((hostContext, services) => 
-            {
-                services.AddSingleton<MainWindow>();
-            })
-            .Build();
-    }
-
     protected override async void OnStartup(StartupEventArgs e)
     {
+        AppHost = Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((builder) =>
+            {
+                builder
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddEnvironmentVariables()
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            })
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.AddSingleton<MainWindow>();
+                services.AddSingleton<IOpenApiService, OpenApiService>();
+            })
+            .Build();
+
         await AppHost!.StartAsync();
         var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
         startupForm.Show();
