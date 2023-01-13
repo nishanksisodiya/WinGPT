@@ -1,134 +1,199 @@
 ﻿<Window x:Class="WinGPT.App.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WinGPT.App"
-        mc:Ignorable="d"
-        Title="WinGPT 0.1" Height="700" Width="1000"
-        Icon="WinGPTLogo.ico"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
-        xmlns:heightConverter="clr-namespace:WinGPT.App.Converters"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:WinGPT.App"
+    mc:Ignorable="d"
+    Title="WinGPT 0.1" Height="700" Width="1000"
+    Icon="WinGPTLogo.ico"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:heightConverter="clr-namespace:WinGPT.App.Converters"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+    TextElement.FontWeight="Regular"
+    TextElement.FontSize="13"
+    TextOptions.TextFormattingMode="Ideal"
+    TextOptions.TextRenderingMode="Auto"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{DynamicResource MaterialDesignFont}">
     <Window.Resources>
         <heightConverter:ScrollViewerHeightConverters x:Key="ScrollViewerHeightConverters" />
     </Window.Resources>
-    <Grid x:Name="mainGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="50px"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <materialDesign:ColorZone
-            Padding="4"
-            Grid.Row="0"
-            materialDesign:ElevationAssist.Elevation="Dp4"
-            Mode="SecondaryDark">
-            <DockPanel>
+    <materialDesign:DialogHost
+        x:Name="dialog"
+        DialogTheme="Inherit">
+        <materialDesign:DialogHost.DialogContent>
+            <StackPanel
+                Height="360"
+                Width="500"
+                Margin="24, 8, 24, 8">
+                <TextBlock
+                    Text="Create Configurations"
+                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
+                <TextBox
+                    x:Name="Model"
+                    materialDesign:HintAssist.Hint="Model"
+                    Margin="0, 20, 0, 10"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                <TextBox
+                    x:Name="MaxTokens"
+                    materialDesign:HintAssist.Hint="Max Tokens"
+                    materialDesign:HintAssist.HelperText="Value between 1-2048/4096 depending on model"
+                    Margin="0, 10, 0, 10"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                <PasswordBox
+                    x:Name="OpenAIAPIKey"
+                    materialDesign:HintAssist.Hint="Open AI API Key"
+                    Margin="0, 10, 0, 10"
+                    Style="{StaticResource MaterialDesignOutlinedPasswordBox}" />
+                <TextBox
+                    x:Name="OpenAIOrganizationId"
+                    materialDesign:HintAssist.Hint="Open AI Organization Id"
+                    Margin="0, 10, 0, 20"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}" />
                 <StackPanel
-                    materialDesign:RippleAssist.IsCentered="True"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
                     Orientation="Horizontal">
                     <Button
-                        Margin="8,0,0,0"
-                        Panel.ZIndex="0"
-                        Style="{StaticResource MaterialDesignFlatAccentButton}" Click="Button_Click">
-                        <materialDesign:PackIcon Kind="Twitter" />
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                        Content="Save"
+                        IsDefault="True"
+                        Click="SaveButton_Click"
+                        Style="{StaticResource MaterialDesignFlatButton}">
                     </Button>
                 </StackPanel>
-            </DockPanel>
-        </materialDesign:ColorZone>
-        <StackPanel 
-            Grid.Row="1" 
-            VerticalAlignment="Bottom"
-            Margin="16, 0, 16 , 16">
-            <Grid>
+            </StackPanel>
+        </materialDesign:DialogHost.DialogContent>
+        <Border>
+            <Grid x:Name="mainGrid">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="10*"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="50px" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <ScrollViewer 
-                    VerticalScrollBarVisibility="Visible"
-                    MaxHeight="{Binding ElementName=mainGrid, Path=ActualHeight, Converter={StaticResource ScrollViewerHeightConverters}}"
-                    x:Name="scrollerViewEl"
-                    Grid.Row="0">
-                    <StackPanel>
-                        <Grid x:Name="messageHistory" VerticalAlignment="Bottom">
-                            <Grid.RowDefinitions>
-                            </Grid.RowDefinitions>
-                        </Grid>
-                        <Grid>
-                            <materialDesign:Card
-                                x:Name="thinkingBar"
-                                Margin="0, 0, 150, 0"
-                                Visibility="Hidden"
-                                Padding="10"
-                                HorizontalAlignment="Left"
-                                MaxHeight="100"
-                                Background="Transparent"
-                                >
-                                <TextBlock 
-                                    x:Name="thinkingBarText"
-                                    FontStyle="Italic" 
-                                    Text="{Binding Status}">
-                                    <TextBlock.Style>
-                                        <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MaterialDesignCaptionTextBlock}">
-                                            <Style.Triggers>
-                                                <EventTrigger RoutedEvent="TextBlock.Loaded">
-                                                    <BeginStoryboard Name="animationRefresh">
-                                                        <Storyboard>
-                                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Text"
-                                                                    Duration="00:00:02.0" 
-                                                                    RepeatBehavior="Forever">
-                                                                <DiscreteObjectKeyFrame KeyTime="00:00:00.00" Value="Thinking   "/>
-                                                                <DiscreteObjectKeyFrame KeyTime="00:00:00.40" Value="Thinking.  "/>
-                                                                <DiscreteObjectKeyFrame KeyTime="00:00:00.80" Value="Thinking.. "/>
-                                                                <DiscreteObjectKeyFrame KeyTime="00:00:01.20" Value="Thinking..."/>
-                                                                <DiscreteObjectKeyFrame KeyTime="00:00:01.60" Value="Thinking...."/>
-                                                            </ObjectAnimationUsingKeyFrames>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </EventTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </materialDesign:Card>
-                        </Grid>
-                    </StackPanel>
-                </ScrollViewer>
-                <materialDesign:Card Grid.Row="1">
+
+
+                <materialDesign:ColorZone
+                    Padding="4"
+                    Grid.Row="0"
+                    materialDesign:ElevationAssist.Elevation="Dp4"
+                    Mode="SecondaryDark">
+                    <DockPanel>
+                        <StackPanel
+                            materialDesign:RippleAssist.IsCentered="True"
+                            Orientation="Horizontal">
+                            <Button
+                                Margin="8,0,0,0"
+                                Panel.ZIndex="0"
+                                Style="{StaticResource MaterialDesignFlatAccentButton}"
+                                Click="Button_Click">
+                                <materialDesign:PackIcon Kind="Twitter" />
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                </materialDesign:ColorZone>
+                <StackPanel
+                    Grid.Row="1"
+                    VerticalAlignment="Bottom"
+                    Margin="16, 0, 16 , 16">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="20*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox
-                            x:Name="messageBox"
-                            Height="auto"
-                            MaxHeight="100"
-                            Grid.Column="0"
-                            VerticalAlignment="Top"
-                            materialDesign:HintAssist.Hint="Message"
-                            materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                            BorderThickness="0"
-                            Padding="12"
-                            TextWrapping="Wrap"
-                            VerticalScrollBarVisibility="Auto" />
-                        <Button
-                            Grid.Column="1"
-                            x:Name="SendMessage"
-                            Height="auto"
-                            Style="{StaticResource MaterialDesignFlatAccentButton}" Click="SendMessage_Click">
-                            <materialDesign:PackIcon Kind="Send" />
-                        </Button>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="10*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer
+                            VerticalScrollBarVisibility="Visible"
+                            MaxHeight="{Binding ElementName=mainGrid, Path=ActualHeight, Converter={StaticResource ScrollViewerHeightConverters}}"
+                            x:Name="scrollerViewEl"
+                            Grid.Row="0">
+                            <StackPanel>
+                                <Grid x:Name="messageHistory" VerticalAlignment="Bottom">
+                                    <Grid.RowDefinitions>
+                                    </Grid.RowDefinitions>
+                                </Grid>
+                                <Grid>
+                                    <materialDesign:Card
+                                        x:Name="thinkingBar"
+                                        Margin="0, 0, 150, 0"
+                                        Visibility="Hidden"
+                                        Padding="10"
+                                        HorizontalAlignment="Left"
+                                        MaxHeight="100"
+                                        Background="Transparent"
+                                    >
+                                        <TextBlock
+                                            x:Name="thinkingBarText"
+                                            FontStyle="Italic"
+                                            Text="{Binding Status}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="{x:Type TextBlock}"
+                                                    BasedOn="{StaticResource MaterialDesignCaptionTextBlock}">
+                                                    <Style.Triggers>
+                                                        <EventTrigger RoutedEvent="TextBlock.Loaded">
+                                                            <BeginStoryboard Name="animationRefresh">
+                                                                <Storyboard>
+                                                                    <ObjectAnimationUsingKeyFrames
+                                                                        Storyboard.TargetProperty="Text"
+                                                                        Duration="00:00:02.0"
+                                                                        RepeatBehavior="Forever">
+                                                                        <DiscreteObjectKeyFrame
+                                                                            KeyTime="00:00:00.00"
+                                                                            Value="Thinking   " />
+                                                                        <DiscreteObjectKeyFrame
+                                                                            KeyTime="00:00:00.40"
+                                                                            Value="Thinking.  " />
+                                                                        <DiscreteObjectKeyFrame
+                                                                            KeyTime="00:00:00.80"
+                                                                            Value="Thinking.. " />
+                                                                        <DiscreteObjectKeyFrame
+                                                                            KeyTime="00:00:01.20"
+                                                                            Value="Thinking..." />
+                                                                        <DiscreteObjectKeyFrame
+                                                                            KeyTime="00:00:01.60"
+                                                                            Value="Thinking...." />
+                                                                    </ObjectAnimationUsingKeyFrames>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </EventTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </materialDesign:Card>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <materialDesign:Card Grid.Row="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20*" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    x:Name="messageBox"
+                                    Height="auto"
+                                    MaxHeight="100"
+                                    Grid.Column="0"
+                                    VerticalAlignment="Top"
+                                    materialDesign:HintAssist.Hint="Message"
+                                    materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+                                    BorderThickness="0"
+                                    Padding="12"
+                                    TextWrapping="Wrap"
+                                    VerticalScrollBarVisibility="Auto" />
+                                <Button
+                                    Grid.Column="1"
+                                    x:Name="SendMessage"
+                                    Height="auto"
+                                    Style="{StaticResource MaterialDesignFlatAccentButton}"
+                                    Click="SendMessage_Click">
+                                    <materialDesign:PackIcon Kind="Send" />
+                                </Button>
+                            </Grid>
+                        </materialDesign:Card>
                     </Grid>
-                </materialDesign:Card>
+                </StackPanel>
             </Grid>
-        </StackPanel>
-    </Grid>
+        </Border>
+    </materialDesign:DialogHost>
 </Window>
