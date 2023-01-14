@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -16,16 +18,14 @@ namespace WinGPT.Services.Services;
 public class OpenApiService : IOpenApiService
 {
     private readonly IConfiguration configuration;
-    private Dictionary<string, string> configs;
 
     public OpenApiService(IConfiguration configuration)
     {
         this.configuration = configuration;
-        configs = this.GetConfigurations();
-
     }
     public List<string> GetModel()
     {
+        var configs = ConfigurationManager.AppSettings;
         var modelsList = new List<string>();
 
         using (var httpClient = new HttpClient())
@@ -53,6 +53,7 @@ public class OpenApiService : IOpenApiService
         string responseMessage = string.Empty;
         try
         {
+            var configs = ConfigurationManager.AppSettings;
             using (var httpClient = new HttpClient())
             {
                 string openAIAPIKey = configs["OpenAIAPIKey"];

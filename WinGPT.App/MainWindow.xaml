@@ -31,11 +31,13 @@
                 <TextBlock
                     Text="Create Configurations"
                     Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
-                <ComboBox
+                <TextBox
                     x:Name="Model"
                     materialDesign:HintAssist.Hint="Model"
-                    Style="{StaticResource MaterialDesignOutlinedComboBox}">
-                    <ComboBox.SelectedItem>
+                    materialDesign:HintAssist.HelperText="Open AI Model ID"
+                    Margin="0, 18, 0, 18"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    <TextBox.Text>
                         <Binding
                             Mode="OneTime"
                             Path="Model"
@@ -45,34 +47,79 @@
                                     ValidatesOnTargetUpdated="True" xmlns:inputValidation="clr-namespace:WinGPT.App.Validators" />
                             </Binding.ValidationRules>
                         </Binding>
-                    </ComboBox.SelectedItem>
-                </ComboBox>
+                    </TextBox.Text>
+                </TextBox>
                 <TextBox
                     x:Name="MaxTokens"
                     materialDesign:HintAssist.Hint="Max Tokens"
                     materialDesign:HintAssist.HelperText="Value between 1-2048/4096 depending on model"
                     Margin="0, 18, 0, 18"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}" />
-                <PasswordBox
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    <TextBox.Text>
+                        <Binding
+                            Mode="OneTime"
+                            Path="MaxTokens"
+                            UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <inputValidation:NotEmptyValidationRule
+                                    ValidatesOnTargetUpdated="True" xmlns:inputValidation="clr-namespace:WinGPT.App.Validators" />
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+                <TextBox
                     x:Name="OpenAIAPIKey"
-                    materialDesign:HintAssist.Hint="Open AI API Key"
+                    materialDesign:HintAssist.Hint="OpenAIAPIKey"
                     Margin="0, 18, 0, 18"
-                    Style="{StaticResource MaterialDesignOutlinedPasswordBox}" />
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    <TextBox.Text>
+                        <Binding
+                            Mode="OneTime"
+                            Path="OpenAIAPIKey"
+                            UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <inputValidation:NotEmptyValidationRule
+                                    ValidatesOnTargetUpdated="True" xmlns:inputValidation="clr-namespace:WinGPT.App.Validators" />
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
                 <TextBox
                     x:Name="OpenAIOrganizationId"
                     materialDesign:HintAssist.Hint="Open AI Organization Id"
                     Margin="0, 18, 0, 25"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    <TextBox.Text>
+                        <Binding
+                            Mode="OneTime"
+                            Path="OpenAIOrganizationId"
+                            UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <inputValidation:NotEmptyValidationRule
+                                    ValidatesOnTargetUpdated="True" xmlns:inputValidation="clr-namespace:WinGPT.App.Validators" />
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
                 <StackPanel
-                    HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
+                    Width="500"
                     Orientation="Horizontal">
                     <Button
+                        HorizontalAlignment="Left"
+                        Content="Cancel"
+                        IsDefault="True"
+                        IsEnabled="{Binding Mode=OneWay, Source=EnableSave}"
+                        Click="CancelButton_Click"
+                        Style="{StaticResource MaterialDesignFlatButton}">
+                    </Button>
+                    <Button
+                        HorizontalAlignment="Right"
                         Content="Save"
                         IsDefault="True"
                         IsEnabled="{Binding Mode=OneWay, Source=EnableSave}"
                         Click="SaveButton_Click"
-                        Style="{StaticResource MaterialDesignFlatButton}">
+                        Style="{StaticResource MaterialDesignRaisedAccentButton}">
                     </Button>
                 </StackPanel>
             </StackPanel>
@@ -83,7 +130,6 @@
                     <RowDefinition Height="50px" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-
 
                 <materialDesign:ColorZone
                     Padding="4"
@@ -98,8 +144,21 @@
                                 Margin="8,0,0,0"
                                 Panel.ZIndex="0"
                                 Style="{StaticResource MaterialDesignFlatAccentButton}"
-                                Click="Button_Click">
+                                Click="Button_Twitter">
                                 <materialDesign:PackIcon Kind="Twitter" />
+                            </Button>
+                        </StackPanel>
+                        <StackPanel
+                            materialDesign:RippleAssist.IsCentered="True"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            >
+                            <Button
+                                Margin="8,0,0,0"
+                                Panel.ZIndex="0"
+                                Style="{StaticResource MaterialDesignPaperSecondaryDarkButton}"
+                                Click="Button_OpenConfigDialog">
+                                <materialDesign:PackIcon Kind="Cog" />
                             </Button>
                         </StackPanel>
                     </DockPanel>

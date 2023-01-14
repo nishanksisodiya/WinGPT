@@ -6,6 +6,7 @@ using System;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Configuration;
 
 using MaterialDesignThemes.Wpf;
 using System.Diagnostics;
@@ -16,6 +17,8 @@ using System.IO;
 using WinGPT.Entities.Configurations;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
+using System.Collections.Specialized;
 
 namespace WinGPT.App;
 
@@ -27,22 +30,33 @@ public partial class MainWindow : Window
     private int messageCounter;
     private readonly IOpenApiService openApiService;
     private enum userType { User, AI };
-    IList<string> modelList;
-    private Dictionary<string, string> configs;
 
     public MainWindow(IOpenApiService openApiService)
     {
-        configs = openApiService.GetConfigurations();
-        modelList = openApiService.GetModel().ToArray();
+        var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        var settings = configFile.AppSettings.Settings;
+
+        var c = openApiService.GetConfigurations();
+        settings.Clear();
+        configFile.Save(ConfigurationSaveMode.Modified);
+        ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+
+        foreach (var kvp in c)
+        {
+            settings.Add(kvp.Key.ToString(), kvp.Value.ToString());
+        }
+        configFile.Save(ConfigurationSaveMode.Modified);
+        ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+
+        var appSettings = ConfigurationManager.AppSettings;
         InitializeComponent();
 
-        Model.ItemsSource = modelList;
-        Model.SelectedItem = configs.GetValueOrDefault("Model");
-        MaxTokens.Text = configs.GetValueOrDefault("MaxToken");
-        OpenAIAPIKey.Password = configs.GetValueOrDefault("OpenAIAPIKey");
-        OpenAIOrganizationId.Text = configs.GetValueOrDefault("OpenAIOrgId");
+        Model.Text = appSettings["Model"];
+        MaxTokens.Text = appSettings["MaxToken"];
+        OpenAIAPIKey.Text = appSettings["OpenAIAPIKey"];
+        OpenAIOrganizationId.Text = appSettings["OpenAIOrgId"];
 
-        if (configs.Keys.Count < 4 || true)
+        if (settings.AllKeys.Length < 4)
         {
             dialog.IsOpen = true;
         }
@@ -59,9 +73,9 @@ public partial class MainWindow : Window
             messageBox.IsEnabled = false;
             thinkingBar.Visibility = Visibility.Visible;
 
-            //var response = await this.openApiService.GetTextCompletion(messageBox.Text);
+            var response = await this.openApiService.GetTextCompletion(messageBox.Text);
             
-            var response = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+            //var response = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
             this.AddMessage(userType.AI, response);
 
             thinkingBar.Visibility = Visibility.Hidden;
@@ -71,7 +85,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
+    private void Button_Twitter(object sender, RoutedEventArgs e)
     {
         var psi = new ProcessStartInfo
         {
@@ -111,15 +125,32 @@ public partial class MainWindow : Window
             return;
         }
 
+        var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        var settings = configFile.AppSettings.Settings;
+
         var cfg = new AppConfigurations()
         {
             Model = Model.Text,
             MaxToken = MaxTokens.Text,
-            OpenAIAPIKey = OpenAIAPIKey.Password,
+            OpenAIAPIKey = OpenAIAPIKey.Text,
             OpenAIOrgId = OpenAIOrganizationId.Text
         };
 
-        File.WriteAllText("Configurations.json", JsonConvert.SerializeObject(cfg));
+        settings.Clear();
+        configFile.Save(ConfigurationSaveMode.Modified);
+        ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+
+        var json = JsonConvert.SerializeObject(cfg);
+        var c = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+        foreach (var kvp in c)
+        {
+            settings.Add(kvp.Key.ToString(), kvp.Value.ToString());
+        }
+        configFile.Save(ConfigurationSaveMode.Modified);
+        ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+
+        File.WriteAllText("Configurations.json", json);
         dialog.IsOpen = false;
     }
 
@@ -133,10 +164,24 @@ public partial class MainWindow : Window
 
     private bool EnableSave()
     {
-        if (!string.IsNullOrEmpty(Model.Text) && !string.IsNullOrEmpty(MaxTokens.Text) && !string.IsNullOrEmpty(OpenAIOrganizationId.Text) && !string.IsNullOrEmpty(OpenAIAPIKey.Password))
+        if (!string.IsNullOrEmpty(Model.Text) && !string.IsNullOrEmpty(MaxTokens.Text) && !string.IsNullOrEmpty(OpenAIOrganizationId.Text) && !string.IsNullOrEmpty(OpenAIAPIKey.Text))
         {
             return true;
         }
         return false;
+    }
+
+    private void Button_OpenConfigDialog(object sender, RoutedEventArgs e)
+    {
+        dialog.IsOpen = true;
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnableSave())
+        {
+            return;
+        }
+        dialog.IsOpen = false;
     }
 }
